@@ -1,3 +1,9 @@
+---
+description: SQLのCASE式は検索CASE式のみを使用し、単純CASE式は禁止する
+globs: ["**/*.sql"]
+alwaysApply: true
+---
+
 # SQL CASE式の記載ルール
 
 ## 基本方針
@@ -155,7 +161,3 @@ ORDER BY warehouse_id;
 3. **NULL値の処理**: `IS NULL`、`IS NOT NULL`が使用可能
 4. **型安全性**: 比較演算子で型の不一致を検出可能
 5. **拡張性**: 将来的な条件追加が容易
-description: SQLのCASE式は検索CASE式のみを使用し、単純CASE式は禁止する
-globs: ["**/*.sql"]
-alwaysApply: true
----
