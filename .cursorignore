@@ -1,0 +1,40 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+
+# 一般的なignore対象
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+*.tmp
+*.cache
+.DS_Store
+Thumbs.db
+
+# ビルド成果物
+dist/
+build/
+out/
+target/
+
+# 依存関係
+vendor/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# データファイル
+*.csv
+*.json
+*.xml
+*.sqlite
+*.db
+
+# ログファイル
+logs/
+*.log
+
+# 一時ファイル
+.tmp/
+temp/

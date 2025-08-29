@@ -1,0 +1,161 @@
+# SQL CASE式の記載ルール
+
+## 基本方針
+- **単純CASE式（Simple CASE）は禁止**
+- **検索CASE式（Searched CASE）のみ使用**
+
+## 禁止パターン（単純CASE式）
+
+```sql
+-- ❌ 禁止：単純CASE式
+SELECT 
+    CASE column_name
+        WHEN 'value1' THEN 'result1'
+        WHEN 'value2' THEN 'result2'
+        ELSE 'default'
+    END AS result
+```
+
+## 推奨パターン（検索CASE式）
+
+```sql
+-- ✅ 推奨：検索CASE式
+SELECT 
+    CASE 
+        WHEN column_name = 'value1' THEN 'result1'
+        WHEN column_name = 'value2' THEN 'result2'
+        ELSE 'default'
+    END AS result
+```
+
+## 詳細ルール
+
+### 1. 基本的な検索CASE式
+```sql
+-- ✅ 良い例
+SELECT 
+    CASE 
+        WHEN status = 'active' THEN '有効'
+        WHEN status = 'inactive' THEN '無効'
+        WHEN status = 'pending' THEN '保留'
+        ELSE '不明'
+    END AS status_japanese
+FROM users;
+```
+
+### 2. 複数条件の検索CASE式
+```sql
+-- ✅ 良い例
+SELECT 
+    CASE 
+        WHEN age < 18 THEN '未成年'
+        WHEN age >= 18 AND age < 65 THEN '成年'
+        WHEN age >= 65 THEN '高齢者'
+        ELSE '不明'
+    END AS age_category
+FROM users;
+```
+
+### 3. NULL値の処理
+```sql
+-- ✅ 良い例
+SELECT 
+    CASE 
+        WHEN email IS NULL THEN 'メール未設定'
+        WHEN email = '' THEN 'メール未設定'
+        WHEN email LIKE '%@%' THEN 'メール設定済み'
+        ELSE 'メール形式エラー'
+    END AS email_status
+FROM users;
+```
+
+### 4. 複数列の条件
+```sql
+-- ✅ 良い例
+SELECT 
+    CASE 
+        WHEN region = 'East Coast' AND warehouse_id IN (1, 2) THEN '東海岸倉庫'
+        WHEN region = 'West Coast' AND warehouse_id IN (3, 4, 5) THEN '西海岸倉庫'
+        ELSE 'その他倉庫'
+    END AS warehouse_location
+FROM warehouse;
+```
+
+### 5. ネストした検索CASE式
+```sql
+-- ✅ 良い例
+SELECT 
+    CASE 
+        WHEN user_type = 'admin' THEN 
+            CASE 
+                WHEN is_active = 1 THEN '管理者（有効）'
+                WHEN is_active = 0 THEN '管理者（無効）'
+                ELSE '管理者（不明）'
+            END
+        WHEN user_type = 'user' THEN 
+            CASE 
+                WHEN is_active = 1 THEN '一般ユーザー（有効）'
+                WHEN is_active = 0 THEN '一般ユーザー（無効）'
+                ELSE '一般ユーザー（不明）'
+            END
+        ELSE '不明ユーザー'
+    END AS user_status
+FROM users;
+```
+
+## フォーマットルール
+
+### インデント
+- `CASE`キーワードは`SELECT`と同じレベル
+- `WHEN`句は4スペースでインデント
+- `END`キーワードは`CASE`と同じレベル
+- エイリアスは`END`と同じ行に配置
+
+### 改行
+- 各`WHEN`句は新しい行に配置
+- 複雑な条件は適切に改行
+- `ELSE`句は新しい行に配置
+
+### 可読性
+- 条件が複雑な場合は適切に改行
+- 長い条件式は複数行に分割
+- コメントを追加して意図を明確化
+
+## 実装例
+
+### 現在のプロジェクトでの使用例
+```sql
+-- ✅ 現在のプロジェクトで使用中の検索CASE式
+SELECT 
+    CASE 
+        WHEN warehouse_id = 1 THEN 'New York'
+        WHEN warehouse_id = 2 THEN 'New Jersey'
+        WHEN warehouse_id = 3 THEN 'Los Angeles'
+        WHEN warehouse_id = 4 THEN 'Seattle'
+        WHEN warehouse_id = 5 THEN 'San Francisco'
+        ELSE 'Non domestic'
+    END AS city, 
+    region 
+FROM warehouse
+ORDER BY warehouse_id;
+```
+
+## 理由
+
+### 単純CASE式を禁止する理由
+1. **可読性**: 検索CASE式の方が条件が明確
+2. **柔軟性**: 複雑な条件や複数列の比較が可能
+3. **一貫性**: プロジェクト全体で統一された書き方
+4. **保守性**: 条件の追加・変更が容易
+5. **デバッグ**: 条件の意図が明確でデバッグしやすい
+
+### 検索CASE式の利点
+1. **明示的な条件**: `WHEN column = value`で条件が明確
+2. **複雑な条件**: `AND`、`OR`、`IN`、`LIKE`等が使用可能
+3. **NULL値の処理**: `IS NULL`、`IS NOT NULL`が使用可能
+4. **型安全性**: 比較演算子で型の不一致を検出可能
+5. **拡張性**: 将来的な条件追加が容易
+description: SQLのCASE式は検索CASE式のみを使用し、単純CASE式は禁止する
+globs: ["**/*.sql"]
+alwaysApply: true
+---
