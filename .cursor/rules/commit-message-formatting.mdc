@@ -1,0 +1,223 @@
+---
+description: コミットメッセージはConventional Commits形式に従い、80文字以内で記述する
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# コミットメッセージのフォーマットルール
+
+## 基本方針
+- **Conventional Commits形式を採用**
+- **1行目は80文字以内**
+- **日本語と英語の混在を避ける**
+- **明確で簡潔なメッセージ**
+
+## 基本フォーマット
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+## 必須要素
+
+### 1. Type（必須）
+コミットの種類を表すプレフィックス
+
+```bash
+# ✅ 推奨：基本的なType
+feat:     新機能の追加
+fix:      バグ修正
+docs:     ドキュメントの更新
+style:    コードスタイルの修正（機能に影響なし）
+refactor: リファクタリング
+test:     テストの追加・修正
+chore:    ビルドプロセスやツールの変更
+```
+
+### 2. Description（必須）
+- **80文字以内**
+- **命令形で記述**
+- **簡潔で明確**
+
+## 禁止パターン
+
+```bash
+# ❌ 禁止：Typeなし
+Add user authentication feature
+
+# ❌ 禁止：80文字超過
+feat: Implement comprehensive user authentication system with OAuth2 integration and role-based access control
+
+# ❌ 禁止：過去形
+feat: Added new user management feature
+
+# ❌ 禁止：不明確
+feat: fix stuff
+
+# ❌ 禁止：日本語と英語の混在
+feat: ユーザー認証機能をadd
+```
+
+## 推奨パターン
+
+### 1. 新機能追加
+```bash
+# ✅ 良い例
+feat: add user authentication system
+feat: implement OAuth2 login
+feat: add password reset functionality
+```
+
+### 2. バグ修正
+```bash
+# ✅ 良い例
+fix: resolve login validation error
+fix: correct SQL query syntax
+fix: handle null pointer exception
+```
+
+### 3. ドキュメント更新
+```bash
+# ✅ 良い例
+docs: update README installation guide
+docs: add API documentation
+docs: fix typo in comments
+```
+
+### 4. リファクタリング
+```bash
+# ✅ 良い例
+refactor: simplify database query logic
+refactor: extract common utility functions
+refactor: improve code organization
+```
+
+### 5. テスト関連
+```bash
+# ✅ 良い例
+test: add unit tests for user service
+test: fix failing integration tests
+test: add performance benchmarks
+```
+
+### 6. 設定・ツール関連
+```bash
+# ✅ 良い例
+chore: update dependencies
+chore: configure CI/CD pipeline
+chore: add linting rules
+```
+
+## 詳細ルール
+
+### Scope（オプション）
+関連するコンポーネントやモジュールを指定
+
+```bash
+# ✅ 良い例
+feat(auth): add JWT token validation
+fix(database): resolve connection timeout
+docs(api): update endpoint documentation
+refactor(utils): extract common functions
+```
+
+### Body（オプション）
+詳細な説明が必要な場合
+
+```bash
+feat: add user authentication system
+
+- Implement JWT-based authentication
+- Add login/logout endpoints
+- Include password hashing with bcrypt
+- Add session management
+```
+
+### Footer（オプション）
+関連するIssueやBreaking Changes
+
+```bash
+feat: add user authentication system
+
+Closes #123
+BREAKING CHANGE: API endpoints now require authentication
+```
+
+## プロジェクト固有の例
+
+### SQL関連
+```bash
+# ✅ 良い例
+feat(sql): add warehouse city mapping query
+fix(sql): correct CASE statement syntax
+refactor(sql): improve query performance
+docs(sql): add query documentation
+```
+
+### マイグレーション関連
+```bash
+# ✅ 良い例
+feat(migration): add users table
+fix(migration): correct foreign key constraint
+refactor(migration): optimize table structure
+```
+
+### Docker関連
+```bash
+# ✅ 良い例
+chore(docker): update MySQL configuration
+fix(docker): resolve container startup issue
+docs(docker): add setup instructions
+```
+
+## フォーマットチェック
+
+### 文字数チェック
+```bash
+# コミットメッセージの1行目が80文字以内かチェック
+git log --oneline -1 | wc -c  # 80以下であることを確認
+```
+
+### プレフィックスチェック
+```bash
+# 有効なTypeかチェック
+feat|fix|docs|style|refactor|test|chore
+```
+
+## 実装例
+
+### 現在のプロジェクトでの使用例
+```bash
+# ✅ 実際のコミット例
+feat: add SQL file management structure
+feat: implement migration system
+feat: add warehouse city mapping query
+fix: correct CASE statement to follow project rules
+docs: update README with usage examples
+chore: add commit message formatting rules
+```
+
+## 理由
+
+### Conventional Commitsを採用する理由
+1. **標準化**: 業界標準のフォーマット
+2. **自動化**: 自動的なCHANGELOG生成が可能
+3. **可読性**: コミットの意図が明確
+4. **検索性**: Type別の検索が容易
+5. **チーム協力**: チーム全体で統一された理解
+
+### 80文字制限の理由
+1. **表示**: 多くのツールで1行に収まる
+2. **可読性**: 短く簡潔で理解しやすい
+3. **強制**: 詳細はBodyに記載するよう促す
+4. **一貫性**: プロジェクト全体で統一された長さ
+
+### プレフィックスの利点
+1. **分類**: コミットの種類が一目で分かる
+2. **フィルタリング**: Type別の履歴確認が容易
+3. **自動化**: CI/CDでの自動処理が可能
+4. **ドキュメント**: 自動的なCHANGELOG生成
