@@ -90,6 +90,9 @@ cat docs/analyze-mysql.md
 
 # GitHubディレクトリの設定について
 cat docs/github-directory.md
+
+# Gitワークフロールールについて
+cat .cursor/rules/git-workflow.mdc
 ```
 
 ## 使用方法
@@ -178,6 +181,17 @@ EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
 - **Issue/PRテンプレート**: 標準化された報告・提案フォーマット
 
 詳細については `docs/github-directory.md` を参照してください。
+
+## Gitワークフロー
+
+このプロジェクトでは、標準化されたGitワークフローを採用しています：
+
+- **Feature Branch Workflow**: 機能開発は専用ブランチで実施
+- **Conventional Commits**: 統一されたコミットメッセージ形式
+- **プルリクエスト必須**: コードレビューによる品質確保
+- **ブランチ保護**: mainブランチへの直接プッシュ禁止
+
+詳細については `.cursor/rules/git-workflow.mdc` を参照してください。
 
 ## データベース情報
 
