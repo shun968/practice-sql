@@ -47,7 +47,8 @@ practice-sql/
 │   └── run_query.sh
 ├── docs/                        # ドキュメント
 │   ├── migration.md
-│   └── analyze-mysql.md
+│   ├── analyze-mysql.md
+│   └── github-directory.md
 └── Makefile                     # 管理コマンド
 ```
 
@@ -86,6 +87,9 @@ cat docs/migration.md
 
 # MySQL実行計画分析について
 cat docs/analyze-mysql.md
+
+# GitHubディレクトリの設定について
+cat docs/github-directory.md
 ```
 
 ## 使用方法
@@ -164,6 +168,16 @@ EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
 ```
 
 詳細については `docs/analyze-mysql.md` を参照してください。
+
+## GitHub設定
+
+このプロジェクトでは、GitHubの機能を活用して品質向上と効率化を図っています：
+
+- **GitHub Actions**: CI/CDパイプラインの自動実行
+- **Dependabot**: 依存関係の自動更新
+- **Issue/PRテンプレート**: 標準化された報告・提案フォーマット
+
+詳細については `docs/github-directory.md` を参照してください。
 
 ## データベース情報
 
