@@ -155,6 +155,31 @@ migrate:
 	@echo "マイグレーション実行中..."
 	./scripts/run_migration.sh
 
+# パフォーマンステスト実行
+performance-test:
+	@echo "パフォーマンステスト実行中..."
+	./scripts/run_performance_test.sh
+
+# 特定のパフォーマンステスト実行
+performance-test-type:
+	@if [ -z "$(TYPE)" ]; then \
+		echo "使用方法: make performance-test-type TYPE=data-volume"; \
+		echo "利用可能なタイプ: data-volume, index, join, subquery, aggregation, sort, results, analyze"; \
+		exit 1; \
+	fi
+	@echo "パフォーマンステスト実行中: $(TYPE)"
+	./scripts/run_performance_test.sh $(TYPE)
+
+# パフォーマンステスト結果レポート生成
+performance-report:
+	@echo "パフォーマンステスト結果レポート生成中..."
+	./scripts/generate_performance_report.sh
+
+# パフォーマンステスト実行 + レポート生成
+performance-test-with-report: performance-test performance-report
+	@echo "パフォーマンステストとレポート生成が完了しました"
+	@echo "レポートファイル: reports/performance_report.html"
+
 # 特定のマイグレーション実行
 migrate-file:
 	@if [ -z "$(FILE)" ]; then \

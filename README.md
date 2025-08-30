@@ -29,26 +29,32 @@ practice-sql/
 │   │   ├── 001_create_users_table.sql
 │   │   ├── 002_create_orders_table.sql
 │   │   ├── 003_create_warehouse_table.sql
-│   │   └── 004_create_analysis_tables.sql
+│   │   ├── 004_create_analysis_tables.sql
+│   │   └── 005_create_performance_test_tables.sql
 │   ├── seeds/                   # テストデータ・初期データ
 │   │   ├── 001_sample_users.sql
 │   │   ├── 002_sample_warehouse.sql
-│   │   └── 004_sample_analysis_data.sql
+│   │   ├── 004_sample_analysis_data.sql
+│   │   └── 005_sample_performance_test_data.sql
 │   ├── queries/                 # 分析・レポート用クエリ
 │   │   ├── reports/
 │   │   │   └── user_statistics.sql
 │   │   └── analysis/
 │   │       ├── warehouse_city_mapping.sql
-│   │       └── correlated_subquery_vs_window.sql
+│   │       ├── correlated_subquery_vs_window.sql
+│   │       └── performance_comparison.sql
 │   └── maintenance/             # メンテナンス用スクリプト
 │       └── cleanup_old_data.sql
 ├── scripts/                     # SQL実行用スクリプト
 │   ├── run_migration.sh
-│   └── run_query.sh
+│   ├── run_query.sh
+│   ├── run_performance_test.sh
+│   └── generate_performance_report.sh
 ├── docs/                        # ドキュメント
 │   ├── migration.md
 │   ├── analyze-mysql.md
 │   └── github-directory.md
+├── reports/                     # パフォーマンステストレポート
 └── Makefile                     # 管理コマンド
 ```
 
@@ -153,6 +159,33 @@ make query FILE=sql/queries/reports/user_statistics.sql
 ```bash
 # メンテナンススクリプトを実行
 make maintenance
+
+# パフォーマンステストを実行
+make performance-test
+
+# 特定のパフォーマンステストを実行
+make performance-test-type TYPE=data-volume
+
+# パフォーマンステスト結果レポート生成
+make performance-report
+
+# パフォーマンステスト実行 + レポート生成
+make performance-test-with-report
+```
+
+**利用可能なテストタイプ**:
+- **data-volume**: データ量による影響の比較（小規模・中規模・大規模テーブル）
+- **index**: インデックス有無による影響の比較
+- **join**: テーブル結合の影響比較
+- **subquery**: サブクエリ vs JOIN の比較
+- **aggregation**: 集計クエリの比較
+- **sort**: ソート処理の比較
+- **results**: テスト結果の表示
+- **analyze**: 結果の統計分析
+
+**レポート生成**:
+- **performance-report**: HTML形式のグラフ付きレポートを生成
+- **performance-test-with-report**: テスト実行とレポート生成を一括実行
 ```
 
 ### 実行計画の確認
