@@ -1,0 +1,359 @@
+# Gitワークフロールール
+
+## 基本方針
+- **Feature Branch Workflowを採用**
+- **Conventional Commits形式を厳格に遵守**
+- **プルリクエスト必須**
+- **レビュー承認後のマージ**
+
+## ブランチ戦略
+
+### ブランチ命名規則
+
+```bash
+# ✅ 良い例
+feature/add-user-authentication
+fix/resolve-login-validation-error
+docs/update-api-documentation
+refactor/simplify-database-query
+test/add-unit-tests-for-user-service
+chore/update-dependencies
+
+# ❌ 禁止
+feature/user-auth
+fix/login-bug
+docs/api
+refactor/query
+test/tests
+chore/deps
+```
+
+### ブランチ種類
+
+| プレフィックス | 用途 | 例 |
+|---------------|------|-----|
+| `feature/` | 新機能開発 | `feature/add-user-authentication` |
+| `fix/` | バグ修正 | `fix/resolve-login-validation-error` |
+| `docs/` | ドキュメント更新 | `docs/update-api-documentation` |
+| `refactor/` | リファクタリング | `refactor/simplify-database-query` |
+| `test/` | テスト追加・修正 | `test/add-unit-tests-for-user-service` |
+| `chore/` | 設定・ツール変更 | `chore/update-dependencies` |
+
+## ワークフロー手順
+
+### 1. ブランチ作成
+
+```bash
+# 最新のmainブランチを取得
+git checkout main
+git pull origin main
+
+# 新しいブランチを作成
+git checkout -b feature/add-new-feature
+
+# ブランチをリモートにプッシュ
+git push -u origin feature/add-new-feature
+```
+
+### 2. 開発・コミット
+
+```bash
+# ファイルを編集
+# ...
+
+# ステージング
+git add .
+
+# コミット（Conventional Commits形式）
+git commit -m "feat: add user authentication system"
+
+# リモートにプッシュ
+git push origin feature/add-new-feature
+```
+
+### 3. プルリクエスト作成
+
+#### PRタイトル
+```bash
+# ✅ 良い例
+feat: add user authentication system
+fix: resolve login validation error
+docs: update API documentation
+
+# ❌ 禁止
+Add user authentication
+Fix login bug
+Update docs
+```
+
+#### PR説明テンプレート
+```markdown
+## 概要
+このPRでは、ユーザー認証システムを追加します。
+
+## 変更内容
+- JWTベースの認証システムを実装
+- ログイン・ログアウトエンドポイントを追加
+- パスワードハッシュ化を実装
+- セッション管理機能を追加
+
+## 影響範囲
+- 認証機能の新規追加
+- 既存のAPIエンドポイントに影響なし
+
+## テスト
+- [x] 単体テスト
+- [x] 統合テスト
+- [x] 手動テスト
+
+## チェックリスト
+- [x] コードレビューを依頼しました
+- [x] テストが通ることを確認しました
+- [x] ドキュメントを更新しました
+- [x] コミットメッセージがプロジェクトルールに従っています
+
+## 関連Issue
+Closes #123
+```
+
+### 4. レビュー・承認
+
+#### レビュアーの役割
+- コードの品質チェック
+- セキュリティの確認
+- パフォーマンスの検証
+- ドキュメントの整合性確認
+
+#### 承認条件
+- 最低1名のレビュアーの承認
+- CI/CDパイプラインの成功
+- コンフリクトの解決
+
+### 5. マージ
+
+#### マージ方法
+```bash
+# マージコミット（推奨）
+git merge --no-ff feature/add-new-feature
+
+# または、GitHubのWebUIでマージ
+```
+
+#### マージ後の処理
+```bash
+# ローカルブランチを削除
+git checkout main
+git pull origin main
+git branch -d feature/add-new-feature
+
+# リモートブランチを削除
+git push origin --delete feature/add-new-feature
+```
+
+## コミットメッセージルール
+
+### Conventional Commits形式
+
+```bash
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### 必須要素
+
+#### 1. Type（必須）
+```bash
+feat:     新機能の追加
+fix:      バグ修正
+docs:     ドキュメントの更新
+style:    コードスタイルの修正（機能に影響なし）
+refactor: リファクタリング
+test:     テストの追加・修正
+chore:    ビルドプロセスやツールの変更
+```
+
+#### 2. Description（必須）
+- **80文字以内**
+- **命令形で記述**
+- **簡潔で明確**
+
+### 禁止パターン
+
+```bash
+# ❌ 禁止：Typeなし
+Add user authentication feature
+
+# ❌ 禁止：80文字超過
+feat: Implement comprehensive user authentication system with OAuth2 integration and role-based access control
+
+# ❌ 禁止：過去形
+feat: Added new user management feature
+
+# ❌ 禁止：不明確
+feat: fix stuff
+
+# ❌ 禁止：日本語と英語の混在
+feat: ユーザー認証機能をadd
+```
+
+## ブランチ保護ルール
+
+### mainブランチの保護
+- **直接プッシュ禁止**
+- **プルリクエスト必須**
+- **レビュー承認必須**
+- **CI/CDパイプライン成功必須**
+
+### developブランチの保護
+- **直接プッシュ禁止**
+- **プルリクエスト必須**
+- **CI/CDパイプライン成功必須**
+
+## コンフリクト解決
+
+### コンフリクト発生時の対応
+
+```bash
+# 1. mainブランチを最新化
+git checkout main
+git pull origin main
+
+# 2. 作業ブランチにmainをマージ
+git checkout feature/add-new-feature
+git merge main
+
+# 3. コンフリクトを解決
+# ファイルを編集してコンフリクトを解決
+
+# 4. 解決後のコミット
+git add .
+git commit -m "fix: resolve merge conflicts"
+
+# 5. リモートにプッシュ
+git push origin feature/add-new-feature
+```
+
+## 緊急修正（Hotfix）
+
+### Hotfixブランチの作成
+
+```bash
+# mainブランチからhotfixブランチを作成
+git checkout main
+git pull origin main
+git checkout -b hotfix/critical-security-fix
+
+# 修正を実装
+# ...
+
+# コミット
+git commit -m "fix: resolve critical security vulnerability"
+
+# プッシュ
+git push -u origin hotfix/critical-security-fix
+```
+
+### Hotfixのマージ
+
+```bash
+# mainブランチにマージ
+git checkout main
+git merge hotfix/critical-security-fix
+
+# developブランチにもマージ
+git checkout develop
+git merge hotfix/critical-security-fix
+
+# タグ付け
+git tag -a v1.0.1 -m "Release v1.0.1 - Critical security fix"
+
+# プッシュ
+git push origin main
+git push origin develop
+git push origin v1.0.1
+
+# ブランチ削除
+git branch -d hotfix/critical-security-fix
+git push origin --delete hotfix/critical-security-fix
+```
+
+## ベストプラクティス
+
+### 1. 小さなコミット
+- 1つのコミットに1つの変更
+- 論理的に分離された変更を別コミットに
+
+### 2. 頻繁なプッシュ
+- 作業の進捗を定期的にプッシュ
+- リモートバックアップの確保
+
+### 3. 明確なコミットメッセージ
+- 変更内容が明確に分かるメッセージ
+- 必要に応じて詳細な説明を追加
+
+### 4. レビューの活用
+- コードレビューを積極的に活用
+- フィードバックを素直に受け入れる
+
+## トラブルシューティング
+
+### よくある問題と解決方法
+
+1. **間違ったブランチで作業**
+   ```bash
+   # 変更をstashして正しいブランチに移動
+   git stash
+   git checkout correct-branch
+   git stash pop
+   ```
+
+2. **コミットメッセージの修正**
+   ```bash
+   # 直前のコミットメッセージを修正
+   git commit --amend -m "feat: correct commit message"
+   ```
+
+3. **複数のコミットを1つにまとめる**
+   ```bash
+   # インタラクティブリベース
+   git rebase -i HEAD~3
+   ```
+
+## 自動化ツール
+
+### 推奨ツール
+
+1. **Husky**: Git hooksの自動化
+2. **Commitlint**: コミットメッセージの検証
+3. **GitHub Actions**: CI/CDパイプライン
+4. **Dependabot**: 依存関係の自動更新
+
+### 設定例
+
+```json
+// package.json
+{
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  }
+}
+```
+
+## まとめ
+
+このGitワークフローを遵守することで、以下の効果が期待できます：
+
+1. **品質向上**: コードレビューによる品質確保
+2. **履歴管理**: 明確なコミット履歴
+3. **チーム協力**: 標準化された作業フロー
+4. **リスク軽減**: ブランチ保護による事故防止
+5. **効率化**: 自動化ツールによる作業効率向上
+description:
+globs:
+alwaysApply: true
+---
