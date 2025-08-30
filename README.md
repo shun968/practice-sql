@@ -6,10 +6,11 @@ MySQLを使用したSQL学習・練習環境です。Dockerを使用して簡単
 
 - 🐳 Docker Composeによる簡単セットアップ
 - 📊 実行計画の確認機能
-- 🔄 マイグレーション管理
+- 🔄 カスタムマイグレーション管理システム
 - 📈 レポート・分析クエリ管理
 - 🛠️ メンテナンススクリプト管理
 - 📝 シードデータ管理
+- 📚 詳細なドキュメント
 
 ## ディレクトリ構成
 
@@ -26,19 +27,27 @@ practice-sql/
 ├── sql/                         # 任意タイミングで実行するSQL
 │   ├── migrations/              # データベースマイグレーション
 │   │   ├── 001_create_users_table.sql
-│   │   └── 002_create_orders_table.sql
+│   │   ├── 002_create_orders_table.sql
+│   │   ├── 003_create_warehouse_table.sql
+│   │   └── 004_create_analysis_tables.sql
 │   ├── seeds/                   # テストデータ・初期データ
-│   │   └── 001_sample_users.sql
+│   │   ├── 001_sample_users.sql
+│   │   ├── 002_sample_warehouse.sql
+│   │   └── 004_sample_analysis_data.sql
 │   ├── queries/                 # 分析・レポート用クエリ
 │   │   ├── reports/
 │   │   │   └── user_statistics.sql
 │   │   └── analysis/
-│   ├── maintenance/             # メンテナンス用スクリプト
-│   │   └── cleanup_old_data.sql
-│   └── procedures/              # ストアドプロシージャ・関数
+│   │       ├── warehouse_city_mapping.sql
+│   │       └── correlated_subquery_vs_window.sql
+│   └── maintenance/             # メンテナンス用スクリプト
+│       └── cleanup_old_data.sql
 ├── scripts/                     # SQL実行用スクリプト
 │   ├── run_migration.sh
 │   └── run_query.sh
+├── docs/                        # ドキュメント
+│   ├── migration.md
+│   └── analyze-mysql.md
 └── Makefile                     # 管理コマンド
 ```
 
@@ -67,6 +76,16 @@ make migrate
 
 ```bash
 make seed
+```
+
+### 5. ドキュメントの確認
+
+```bash
+# マイグレーション管理について
+cat docs/migration.md
+
+# MySQL実行計画分析について
+cat docs/analyze-mysql.md
 ```
 
 ## 使用方法
@@ -101,6 +120,8 @@ make migrate-file FILE=sql/migrations/001_create_users_table.sql
 # マイグレーション履歴を表示
 make migration-history
 ```
+
+詳細については `docs/migration.md` を参照してください。
 
 #### シードデータ
 
@@ -142,6 +163,8 @@ EXPLAIN FORMAT=JSON SELECT * FROM users WHERE email = 'test@example.com';
 EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
 ```
 
+詳細については `docs/analyze-mysql.md` を参照してください。
+
 ## データベース情報
 
 - **Host**: localhost
@@ -158,6 +181,7 @@ EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
 - ファイル名は `001_`, `002_` のように連番で管理
 - 各ファイルには適切なコメントを記載
 - 実行履歴は `migration_history` テーブルで管理
+- 詳細については `docs/migration.md` を参照
 
 ### クエリファイル
 
