@@ -1,0 +1,283 @@
+---
+description: プロジェクトファイルの整理と管理に関するルール
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# ファイル整理ルール
+
+## 基本方針
+- **一貫性のあるディレクトリ構造を維持**
+- **不要なファイルは即座に削除**
+- **ドキュメントは適切に統合・更新**
+- **命名規則を厳格に遵守**
+
+## ディレクトリ構造
+
+### 必須ディレクトリ
+```
+practice-sql/
+├── docker/mysql/                # Docker設定のみ
+├── sql/                         # SQLファイル管理
+│   ├── migrations/              # データベースマイグレーション
+│   ├── seeds/                   # テストデータ・初期データ
+│   ├── queries/                 # 分析・レポート用クエリ
+│   └── maintenance/             # メンテナンス用スクリプト
+├── scripts/                     # 実行スクリプト
+├── docs/                        # ドキュメント
+├── .cursor/rules/               # プロジェクトルール
+├── Makefile                     # 管理コマンド
+└── README.md                    # プロジェクト概要
+```
+
+### 禁止ディレクトリ
+- `sql/procedures/` - 空のディレクトリは削除
+- `.vscode/` - エディタ固有の設定は除外
+- `docker/flyway/` - 使用しないツールの設定
+
+## ファイル命名規則
+
+### マイグレーションファイル
+```bash
+# ✅ 良い例
+001_create_users_table.sql
+002_create_orders_table.sql
+003_create_warehouse_table.sql
+004_create_analysis_tables.sql
+
+# ❌ 禁止
+V1__Create_users_table.sql
+1_create_users_table.sql
+create_users_table.sql
+```
+
+### シードファイル
+```bash
+# ✅ 良い例
+001_sample_users.sql
+002_sample_warehouse.sql
+004_sample_analysis_data.sql
+
+# ❌ 禁止
+sample_users.sql
+001_users.sql
+users_seed.sql
+```
+
+### クエリファイル
+```bash
+# ✅ 良い例
+user_statistics.sql
+warehouse_city_mapping.sql
+correlated_subquery_vs_window.sql
+
+# ❌ 禁止
+query1.sql
+report.sql
+analysis.sql
+```
+
+### ドキュメントファイル
+```bash
+# ✅ 良い例
+migration.md
+analyze-mysql.md
+README.md
+
+# ❌ 禁止
+migration-control.md
+migration-enhancement.md
+docs.md
+```
+
+## ファイル管理ルール
+
+### 1. 重複ファイルの禁止
+- 同じ機能を持つファイルは統合
+- 古いバージョンは即座に削除
+- バックアップファイルは作成しない
+
+### 2. 空ディレクトリの削除
+```bash
+# 空ディレクトリは即座に削除
+rmdir sql/procedures
+rmdir .vscode
+```
+
+### 3. 不要ファイルの削除
+- テスト用の一時ファイル
+- エディタ固有の設定ファイル
+- 使用しないツールの設定ファイル
+
+### 4. ドキュメントの統合
+- 関連するドキュメントは統合
+- 冗長な記述は削除
+- 相互参照を適切に設定
+
+## ファイル整理の手順
+
+### 1. 定期的な整理
+```bash
+# 不要ファイルの確認
+find . -name "*.tmp" -o -name "*.bak" -o -name "*~"
+find . -type d -empty
+
+# 重複ファイルの確認
+find . -name "*.sql" | xargs md5sum | sort | uniq -w32 -d
+```
+
+### 2. ドキュメント更新
+- README.mdのディレクトリ構成を最新化
+- ドキュメント間の相互参照を確認
+- 古い情報を削除
+
+### 3. ファイル検証
+```bash
+# ファイル存在確認
+ls sql/migrations/*.sql
+ls sql/seeds/*.sql
+ls sql/queries/**/*.sql
+ls docs/*.md
+```
+
+## 禁止パターン
+
+### 1. ファイル命名
+```bash
+# ❌ 禁止：一貫性のない命名
+001_create_users.sql
+create_orders_table.sql
+V3__warehouse.sql
+
+# ❌ 禁止：不明確な命名
+query.sql
+data.sql
+test.sql
+```
+
+### 2. ディレクトリ構造
+```bash
+# ❌ 禁止：不要なネスト
+sql/migrations/v1/001_create_users.sql
+sql/queries/reports/monthly/user_stats.sql
+
+# ❌ 禁止：空ディレクトリ
+sql/procedures/
+.vscode/
+```
+
+### 3. ドキュメント管理
+```bash
+# ❌ 禁止：重複ドキュメント
+docs/migration-control.md
+docs/migration-enhancement.md
+docs/migration.md
+
+# ❌ 禁止：古い情報
+README.mdに古いディレクトリ構成
+削除されたファイルへの参照
+```
+
+## 推奨パターン
+
+### 1. ファイル整理
+```bash
+# ✅ 良い例：一貫性のある命名
+sql/migrations/001_create_users_table.sql
+sql/migrations/002_create_orders_table.sql
+sql/seeds/001_sample_users.sql
+sql/seeds/002_sample_warehouse.sql
+
+# ✅ 良い例：適切なディレクトリ構造
+sql/queries/reports/user_statistics.sql
+sql/queries/analysis/warehouse_city_mapping.sql
+```
+
+### 2. ドキュメント管理
+```bash
+# ✅ 良い例：統合されたドキュメント
+docs/migration.md          # マイグレーション全般
+docs/analyze-mysql.md      # MySQL分析
+README.md                  # プロジェクト概要
+
+# ✅ 良い例：相互参照
+README.md → docs/migration.md
+README.md → docs/analyze-mysql.md
+```
+
+### 3. ファイル検証
+```bash
+# ✅ 良い例：定期的な検証
+make validate-files        # ファイル構造の検証
+make check-docs           # ドキュメントの整合性確認
+make cleanup              # 不要ファイルの削除
+```
+
+## 実装例
+
+### 現在のプロジェクトでの使用例
+```bash
+# ✅ 実際のファイル構造
+sql/migrations/
+├── 001_create_users_table.sql
+├── 002_create_orders_table.sql
+├── 003_create_warehouse_table.sql
+└── 004_create_analysis_tables.sql
+
+sql/seeds/
+├── 001_sample_users.sql
+├── 002_sample_warehouse.sql
+└── 004_sample_analysis_data.sql
+
+docs/
+├── migration.md
+└── analyze-mysql.md
+```
+
+## 理由
+
+### 一貫性を重視する理由
+1. **可読性**: 統一された命名規則で理解しやすい
+2. **保守性**: ファイルの場所が予測可能
+3. **自動化**: スクリプトでの処理が容易
+4. **チーム協力**: 全員が同じルールで作業
+
+### 不要ファイルを削除する理由
+1. **混乱防止**: 古いファイルによる混乱を防ぐ
+2. **保守性**: 管理対象を最小限に保つ
+3. **パフォーマンス**: 不要なファイル検索を避ける
+4. **明確性**: 現在の状態が明確になる
+
+### ドキュメント統合の理由
+1. **情報の一元化**: 関連情報を一箇所に集約
+2. **重複排除**: 同じ情報の重複を避ける
+3. **更新効率**: 一箇所の更新で済む
+4. **参照の簡素化**: 相互参照が明確になる
+
+## フォーマットチェック
+
+### ファイル命名チェック
+```bash
+# マイグレーションファイルの命名チェック
+ls sql/migrations/ | grep -E '^[0-9]{3}_[a-z_]+\.sql$'
+
+# シードファイルの命名チェック
+ls sql/seeds/ | grep -E '^[0-9]{3}_sample_[a-z_]+\.sql$'
+```
+
+### ディレクトリ構造チェック
+```bash
+# 必須ディレクトリの存在確認
+test -d sql/migrations && test -d sql/seeds && test -d sql/queries
+
+# 空ディレクトリの確認
+find . -type d -empty
+```
+
+### ドキュメント整合性チェック
+```bash
+# 削除されたファイルへの参照確認
+grep -r "migration-control.md" docs/
+grep -r "migration-enhancement.md" docs/
+```
+
