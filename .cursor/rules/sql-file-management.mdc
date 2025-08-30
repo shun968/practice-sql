@@ -1,0 +1,327 @@
+---
+description: SQLファイルの管理と実行に関するルール
+globs: ["**/*.sql"]
+alwaysApply: true
+---
+
+# SQLファイル管理ルール
+
+## 基本方針
+- **冪等性を保つSQLを記述**
+- **適切なコメントを記載**
+- **ファイル名は内容を明確に表現**
+- **実行順序を考慮した命名**
+
+## ファイル分類
+
+### マイグレーションファイル（sql/migrations/）
+データベーススキーマの変更を管理
+
+```sql
+-- ✅ 良い例：冪等性を保つ
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ✅ 良い例：インデックスも冪等性を保つ
+CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+```
+
+### シードファイル（sql/seeds/）
+テストデータや初期データを管理
+
+```sql
+-- ✅ 良い例：ON DUPLICATE KEY UPDATEで冪等性を保つ
+INSERT INTO users (username, email) VALUES 
+('john_doe', 'john@example.com'),
+('jane_smith', 'jane@example.com')
+ON DUPLICATE KEY UPDATE 
+    updated_at = CURRENT_TIMESTAMP;
+```
+
+### クエリファイル（sql/queries/）
+分析・レポート用のクエリ
+
+```sql
+-- ✅ 良い例：適切なコメントと説明
+-- ユーザー統計レポート
+-- 作成日: 2024-01-01
+-- 説明: ユーザー数とメール設定状況を集計
+
+SELECT 
+    COUNT(*) as total_users,
+    COUNT(CASE WHEN email IS NOT NULL THEN 1 END) as users_with_email,
+    COUNT(CASE WHEN email IS NULL THEN 1 END) as users_without_email
+FROM users;
+```
+
+### メンテナンスファイル（sql/maintenance/）
+定期的なメンテナンス用スクリプト
+
+```sql
+-- ✅ 良い例：安全な削除
+-- 30日以上古いログデータを削除
+DELETE FROM log_entries 
+WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+AND id IN (
+    SELECT id FROM (
+        SELECT id FROM log_entries 
+        WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+        LIMIT 1000
+    ) AS temp
+);
+```
+
+## 禁止パターン
+
+### 1. 非冪等なSQL
+```sql
+-- ❌ 禁止：冪等性がない
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- ❌ 禁止：重複実行でエラー
+INSERT INTO users (username, email) VALUES 
+('john_doe', 'john@example.com');
+```
+
+### 2. 不適切なコメント
+```sql
+-- ❌ 禁止：コメントなし
+SELECT * FROM users WHERE status = 'active';
+
+-- ❌ 禁止：不明確なコメント
+-- ユーザー取得
+SELECT * FROM users;
+```
+
+### 3. 危険な操作
+```sql
+-- ❌ 禁止：制限なしの削除
+DELETE FROM users;
+
+-- ❌ 禁止：バックアップなしのDROP
+DROP TABLE users;
+```
+
+## 推奨パターン
+
+### 1. 冪等性の確保
+```sql
+-- ✅ 良い例：IF NOT EXISTS
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- ✅ 良い例：ON DUPLICATE KEY UPDATE
+INSERT INTO users (username, email) VALUES 
+('john_doe', 'john@example.com')
+ON DUPLICATE KEY UPDATE 
+    email = VALUES(email),
+    updated_at = CURRENT_TIMESTAMP;
+```
+
+### 2. 適切なコメント
+```sql
+-- ✅ 良い例：詳細なコメント
+-- マイグレーション: 001_create_users_table.sql
+-- 作成日: 2024-01-01
+-- 説明: ユーザー管理のための基本テーブルを作成
+-- 依存関係: なし
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### 3. 安全な操作
+```sql
+-- ✅ 良い例：制限付き削除
+DELETE FROM log_entries 
+WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+LIMIT 1000;
+
+-- ✅ 良い例：トランザクション内での操作
+START TRANSACTION;
+    -- 安全な操作
+    UPDATE users SET status = 'inactive' WHERE last_login < DATE_SUB(NOW(), INTERVAL 90 DAY);
+    -- 確認
+    SELECT COUNT(*) FROM users WHERE status = 'inactive';
+COMMIT;
+```
+
+## ファイル命名規則
+
+### マイグレーションファイル
+```bash
+# ✅ 良い例
+001_create_users_table.sql
+002_create_orders_table.sql
+003_add_user_indexes.sql
+004_update_user_schema.sql
+
+# ❌ 禁止
+create_users.sql
+users_table.sql
+001_users.sql
+```
+
+### シードファイル
+```bash
+# ✅ 良い例
+001_sample_users.sql
+002_sample_orders.sql
+003_sample_products.sql
+
+# ❌ 禁止
+users.sql
+data.sql
+sample.sql
+```
+
+### クエリファイル
+```bash
+# ✅ 良い例
+user_statistics.sql
+order_summary.sql
+product_analysis.sql
+
+# ❌ 禁止
+query.sql
+report.sql
+analysis.sql
+```
+
+## 実行順序の考慮
+
+### 1. マイグレーションの依存関係
+```sql
+-- 001_create_users_table.sql
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- 002_create_orders_table.sql（usersテーブルに依存）
+CREATE TABLE IF NOT EXISTS orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+### 2. シードデータの順序
+```sql
+-- 001_sample_users.sql（先に実行）
+INSERT INTO users (username, email) VALUES 
+('john_doe', 'john@example.com');
+
+-- 002_sample_orders.sql（usersテーブルに依存）
+INSERT INTO orders (user_id, amount) VALUES 
+(1, 100.00);
+```
+
+## エラーハンドリング
+
+### 1. 適切なエラー処理
+```sql
+-- ✅ 良い例：エラーを考慮した設計
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- ユニーク制約違反を考慮
+INSERT INTO users (username, email) VALUES 
+('john_doe', 'john@example.com')
+ON DUPLICATE KEY UPDATE 
+    email = VALUES(email);
+```
+
+### 2. ロールバックの考慮
+```sql
+-- ✅ 良い例：トランザクション内での操作
+START TRANSACTION;
+    INSERT INTO users (username, email) VALUES ('john_doe', 'john@example.com');
+    INSERT INTO user_profiles (user_id, bio) VALUES (LAST_INSERT_ID(), 'Hello World');
+    
+    -- エラーが発生した場合は自動的にロールバック
+COMMIT;
+```
+
+## パフォーマンスの考慮
+
+### 1. インデックスの適切な使用
+```sql
+-- ✅ 良い例：必要なインデックスを作成
+CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users (created_at);
+```
+
+### 2. 効率的なクエリ
+```sql
+-- ✅ 良い例：LIMITを使用した制限
+SELECT * FROM users 
+WHERE created_at > DATE_SUB(NOW(), INTERVAL 30 DAY)
+ORDER BY created_at DESC
+LIMIT 100;
+```
+
+## 実装例
+
+### 現在のプロジェクトでの使用例
+```sql
+-- sql/migrations/001_create_users_table.sql
+-- マイグレーション: ユーザーテーブルの作成
+-- 作成日: 2024-01-01
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- sql/seeds/001_sample_users.sql
+-- シードデータ: サンプルユーザーの作成
+-- 作成日: 2024-01-01
+
+INSERT INTO users (username, email) VALUES 
+('john_doe', 'john@example.com'),
+('jane_smith', 'jane@example.com')
+ON DUPLICATE KEY UPDATE 
+    updated_at = CURRENT_TIMESTAMP;
+```
+
+## 理由
+
+### 冪等性を重視する理由
+1. **安全性**: 重複実行によるエラーを防ぐ
+2. **自動化**: CI/CDでの自動実行が可能
+3. **保守性**: 手動実行時の安全性を確保
+4. **信頼性**: 予期しない動作を防ぐ
+
+### 適切なコメントを重視する理由
+1. **可読性**: コードの意図が明確
+2. **保守性**: 将来の変更が容易
+3. **チーム協力**: 他の開発者の理解を促進
+4. **ドキュメント**: コード自体がドキュメントになる
+
+### 安全な操作を重視する理由
+1. **データ保護**: 重要なデータの損失を防ぐ
+2. **運用安定性**: 予期しない影響を避ける
+3. **監査**: 操作の追跡が可能
+4. **復旧**: 問題発生時の対応が容易
+
