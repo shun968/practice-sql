@@ -144,6 +144,18 @@ SELECT
     region 
 FROM warehouse
 ORDER BY warehouse_id;
+
+-- ✅ Window関数での使用例
+SELECT 
+    user_id,
+    product_name,
+    amount,
+    CASE 
+        WHEN amount > AVG(amount) OVER (PARTITION BY region) THEN 'Above Average'
+        WHEN amount = AVG(amount) OVER (PARTITION BY region) THEN 'Average'
+        ELSE 'Below Average'
+    END AS performance_category
+FROM sales;
 ```
 
 ## 理由
