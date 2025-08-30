@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: practice_db
+          MYSQL_USER: practice_user
+          MYSQL_PASSWORD: practice_password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Wait for MySQL
+      run: |
+        while ! mysqladmin ping -h"127.0.0.1" -P3306 -u"practice_user" -p"practice_password" --silent; do
+          sleep 1
+        done
+
+    - name: Run migrations
+      run: |
+        # マイグレーションスクリプトを実行
+        # 実際のプロジェクトに合わせて調整
+        echo "Running migrations..."
+
+    - name: Run tests
+      run: |
+        # テストスクリプトを実行
+        # 実際のプロジェクトに合わせて調整
+        echo "Running tests..."
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check file naming conventions
+      run: |
+        # ファイル命名規則のチェック
+        echo "Checking file naming conventions..."
+        
+        # マイグレーションファイルの命名チェック
+        if ! ls sql/migrations/ | grep -E '^[0-9]{3}_[a-z_]+\.sql$' > /dev/null; then
+          echo "Error: Migration files must follow the pattern: 001_name.sql"
+          exit 1
+        fi
+        
+        # シードファイルの命名チェック
+        if ! ls sql/seeds/ | grep -E '^[0-9]{3}_sample_[a-z_]+\.sql$' > /dev/null; then
+          echo "Error: Seed files must follow the pattern: 001_sample_name.sql"
+          exit 1
+        fi
+
+    - name: Check documentation
+      run: |
+        # ドキュメントの整合性チェック
+        echo "Checking documentation..."
+        
+        # 削除されたファイルへの参照確認
+        if grep -r "migration-control.md" docs/; then
+          echo "Error: Found reference to deleted file migration-control.md"
+          exit 1
+        fi
+        
+        if grep -r "migration-enhancement.md" docs/; then
+          echo "Error: Found reference to deleted file migration-enhancement.md"
+          exit 1
+        fi
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run security scan
+      run: |
+        # セキュリティスキャンの実行
+        echo "Running security scan..."
+        
+        # 機密情報のチェック
+        if grep -r "password\|secret\|token" . --exclude-dir=.git --exclude-dir=node_modules; then
+          echo "Warning: Potential secrets found in code"
+        fi
