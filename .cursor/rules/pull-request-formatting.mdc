@@ -1,0 +1,250 @@
+---
+description: プルリクエストのタイトルと説明はConventional Commits形式に従い、明確で簡潔に記述する
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# プルリクエストのフォーマットルール
+
+## 基本方針
+- **Conventional Commits形式を採用**
+- **タイトルは80文字以内**
+- **日本語と英語の混在を避ける**
+- **明確で簡潔なメッセージ**
+- **変更内容を適切に説明**
+
+## 基本フォーマット
+
+```
+<type>[optional scope]: <description>
+
+## 概要
+変更の概要を簡潔に説明
+
+## 変更内容
+- 変更点1
+- 変更点2
+- 変更点3
+
+## 影響範囲
+- 影響を受ける機能やファイル
+
+## テスト
+- 実行したテスト内容
+
+## 関連Issue
+- 関連するIssue番号（該当する場合）
+```
+
+## 必須要素
+
+### 1. Type（必須）
+PRの種類を表すプレフィックス
+
+```bash
+# ✅ 推奨：基本的なType
+feat:     新機能の追加
+fix:      バグ修正
+docs:     ドキュメントの更新
+style:    コードスタイルの修正（機能に影響なし）
+refactor: リファクタリング
+test:     テストの追加・修正
+chore:    ビルドプロセスやツールの変更
+```
+
+### 2. Description（必須）
+- **80文字以内**
+- **命令形で記述**
+- **簡潔で明確**
+
+## 禁止パターン
+
+```bash
+# ❌ 禁止：Typeなし
+Add comprehensive project rules and documentation
+
+# ❌ 禁止：80文字超過
+feat: Implement comprehensive project rules for file organization, SQL management, and documentation with detailed examples
+
+# ❌ 禁止：過去形
+feat: Added new project rules and updated documentation
+
+# ❌ 禁止：不明確
+feat: update stuff
+
+# ❌ 禁止：日本語と英語の混在
+feat: プロジェクトルールをadd
+```
+
+## 推奨パターン
+
+### 1. 新機能追加
+```bash
+# ✅ 良い例
+feat: add comprehensive project rules and documentation
+feat: implement file organization guidelines
+feat: add SQL file management standards
+```
+
+### 2. バグ修正
+```bash
+# ✅ 良い例
+fix: resolve migration execution issues
+fix: correct SQL syntax errors
+fix: handle file naming inconsistencies
+```
+
+### 3. ドキュメント更新
+```bash
+# ✅ 良い例
+docs: update project documentation and guidelines
+docs: add migration system documentation
+docs: improve README with usage examples
+```
+
+### 4. リファクタリング
+```bash
+# ✅ 良い例
+refactor: clean up project structure and organization
+refactor: improve file naming conventions
+refactor: consolidate documentation files
+```
+
+### 5. 設定・ツール関連
+```bash
+# ✅ 良い例
+chore: add project rules and formatting guidelines
+chore: update development environment setup
+chore: configure linting and formatting rules
+```
+
+## PR説明の詳細ルール
+
+### 1. 概要セクション
+```markdown
+## 概要
+このPRでは、プロジェクトの品質向上と保守性向上のため、以下の改善を実施します：
+
+- ファイル整理ルールの追加
+- SQLファイル管理ルールの追加
+- ドキュメント管理ルールの追加
+- 既存ドキュメントの統合と更新
+```
+
+### 2. 変更内容セクション
+```markdown
+## 変更内容
+- 新規プロジェクトルール3つの追加
+  - ファイル整理ルール（`.cursor/rules/file-organization.mdc`）
+  - SQLファイル管理ルール（`.cursor/rules/sql-file-management.mdc`）
+  - ドキュメント管理ルール（`.cursor/rules/documentation-management.mdc`）
+- ドキュメントの統合と更新
+  - `docs/migration.md`の新規作成
+  - `README.md`の更新
+  - `docs/analyze-mysql.md`の更新
+- プロジェクト構造の整理
+  - 不要ファイルの削除（`.vscode/`, `mysql-docker.sh`）
+  - ファイル命名の統一
+```
+
+### 3. 影響範囲セクション
+```markdown
+## 影響範囲
+- 開発者全員：新しいプロジェクトルールの適用
+- ファイル管理：命名規則とディレクトリ構造の統一
+- ドキュメント：情報の一元化と相互参照の改善
+- コード品質：SQLの冪等性と安全性の向上
+```
+
+### 4. テストセクション
+```markdown
+## テスト
+- [x] プロジェクトルールの構文チェック
+- [x] ドキュメントの整合性確認
+- [x] ファイル構造の検証
+- [x] SQLファイルの実行テスト
+- [x] マイグレーションの動作確認
+```
+
+## 実装例
+
+### 現在のプロジェクトでの使用例
+```markdown
+# PRタイトル
+feat: add comprehensive project rules and documentation
+
+# PR説明
+## 概要
+プロジェクトの品質向上と保守性向上のため、包括的なプロジェクトルールとドキュメント管理システムを追加します。
+
+## 変更内容
+- 新規プロジェクトルール3つの追加
+  - ファイル整理ルール（`.cursor/rules/file-organization.mdc`）
+  - SQLファイル管理ルール（`.cursor/rules/sql-file-management.mdc`）
+  - ドキュメント管理ルール（`.cursor/rules/documentation-management.mdc`）
+- ドキュメントの統合と更新
+  - `docs/migration.md`の新規作成
+  - `README.md`の更新
+  - `docs/analyze-mysql.md`の更新
+- プロジェクト構造の整理
+  - 不要ファイルの削除（`.vscode/`, `mysql-docker.sh`）
+  - ファイル命名の統一
+
+## 影響範囲
+- 開発者全員：新しいプロジェクトルールの適用
+- ファイル管理：命名規則とディレクトリ構造の統一
+- ドキュメント：情報の一元化と相互参照の改善
+- コード品質：SQLの冪等性と安全性の向上
+
+## テスト
+- [x] プロジェクトルールの構文チェック
+- [x] ドキュメントの整合性確認
+- [x] ファイル構造の検証
+- [x] SQLファイルの実行テスト
+- [x] マイグレーションの動作確認
+
+## 関連Issue
+なし
+```
+
+## 理由
+
+### Conventional Commitsを採用する理由
+1. **標準化**: 業界標準のフォーマット
+2. **自動化**: 自動的なCHANGELOG生成が可能
+3. **可読性**: PRの意図が明確
+4. **検索性**: Type別の検索が容易
+5. **チーム協力**: チーム全体で統一された理解
+
+### 80文字制限の理由
+1. **表示**: 多くのツールで1行に収まる
+2. **可読性**: 短く簡潔で理解しやすい
+3. **強制**: 詳細は説明に記載するよう促す
+4. **一貫性**: プロジェクト全体で統一された長さ
+
+### 詳細な説明を重視する理由
+1. **透明性**: 変更内容が明確
+2. **レビュー効率**: レビュアーの理解を促進
+3. **記録**: 将来の参照に役立つ
+4. **品質**: 変更の意図と影響が明確
+
+## フォーマットチェック
+
+### タイトルチェック
+```bash
+# PRタイトルが80文字以内かチェック
+echo "feat: add comprehensive project rules and documentation" | wc -c  # 80以下であることを確認
+```
+
+### プレフィックスチェック
+```bash
+# 有効なTypeかチェック
+feat|fix|docs|style|refactor|test|chore
+```
+
+### 説明チェック
+```bash
+# 必須セクションの存在確認
+grep -E "## 概要|## 変更内容|## 影響範囲|## テスト" PR_DESCRIPTION.md
+```
+
