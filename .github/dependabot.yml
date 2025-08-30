@@ -3,21 +3,6 @@
 
 version: 2
 updates:
-  # Dockerの依存関係を更新
-  - package-ecosystem: "docker"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 10
-    assignees:
-      - "shun968"
-    commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
-      include: "scope"
-
   # GitHub Actionsの依存関係を更新
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -33,21 +18,19 @@ updates:
       prefix-development: "chore"
       include: "scope"
 
-  # npmの依存関係を更新（将来的にNode.jsプロジェクトになった場合）
-  - package-ecosystem: "npm"
-    directory: "/"
+  # Docker Composeの依存関係を更新（docker/mysql/compose.yaml）
+  - package-ecosystem: "docker"
+    directory: "/docker/mysql"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     assignees:
       - "shun968"
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-    ignore:
-      # メジャーバージョンアップは手動で確認
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+    # MySQLイメージの更新のみを対象とする
+    target-branch: "main"
