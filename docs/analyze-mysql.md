@@ -618,3 +618,242 @@ HAVING current_avg > previous_avg * 1.5; -- 50%以上の劣化を検出
 5. **学習効果**: 実際のデータでの実行計画分析の習得
 
 パフォーマンステストを活用して、効率的なSQLクエリの設計と運用を実現してください。
+
+## 結合順序とインデックス設計のベストプラクティス
+
+### 結合順序の最適化
+
+#### 1. 小さいテーブルから大きいテーブルへ結合
+
+```sql
+-- ✅ 良い例：小さいテーブルを駆動テーブルにする
+SELECT m.name, d.item_name, d.quantity
+FROM master_table m          -- 10行（小さいテーブル）
+INNER JOIN detail_table d    -- 12行（大きいテーブル）
+ON m.id = d.master_id
+WHERE m.status = 'active';
+
+-- ❌ 悪い例：大きいテーブルを駆動テーブルにする
+SELECT m.name, d.item_name, d.quantity
+FROM detail_table d          -- 12行（大きいテーブル）
+INNER JOIN master_table m    -- 10行（小さいテーブル）
+ON d.master_id = m.id
+WHERE m.status = 'active';
+```
+
+**理由**: 小さいテーブルの行数分だけループが回るため、ループ回数を最小化できます。
+
+#### 2. WHERE句で絞り込めるテーブルを先に結合
+
+```sql
+-- ✅ 良い例：フィルタリング条件があるテーブルを先に処理
+SELECT m.name, d.item_name, d.quantity
+FROM master_table m
+INNER JOIN detail_table d ON m.id = d.master_id
+WHERE m.status = 'active'    -- 早期フィルタリング
+AND d.quantity > 5;
+
+-- ❌ 悪い例：フィルタリングを後で実行
+SELECT m.name, d.item_name, d.quantity
+FROM detail_table d
+INNER JOIN master_table m ON d.master_id = m.id
+WHERE m.status = 'active'    -- 後期フィルタリング
+AND d.quantity > 5;
+```
+
+**理由**: 処理対象の行数を早期に削減できます。
+
+#### 3. インデックスが効くテーブルを先に結合
+
+```sql
+-- ✅ 良い例：インデックスがあるテーブルを優先
+SELECT m.name, d.item_name, d.quantity
+FROM master_table m          -- 主キーインデックスあり
+INNER JOIN detail_table d    -- 外部キーインデックスあり
+ON m.id = d.master_id
+WHERE m.status = 'active';
+
+-- ❌ 悪い例：インデックスがないテーブルを優先
+SELECT m.name, d.item_name, d.quantity
+FROM detail_table d          -- インデックスなし
+INNER JOIN master_table m    -- 主キーインデックスあり
+ON d.master_id = m.id
+WHERE m.status = 'active';
+```
+
+**理由**: インデックススキャンで高速に処理できます。
+
+#### 4. カーディナリティの高いカラムで結合
+
+```sql
+-- ✅ 良い例：一意性の高いカラムで結合
+SELECT m.name, d.item_name, d.quantity
+FROM master_table m
+INNER JOIN detail_table d
+ON m.id = d.master_id;       -- 主キー（高カーディナリティ）
+
+-- ❌ 悪い例：低カーディナリティのカラムで結合
+SELECT m.name, d.item_name, d.quantity
+FROM master_table m
+INNER JOIN detail_table d
+ON m.status = d.status;      -- ステータス（低カーディナリティ）
+```
+
+**理由**: 結合結果の行数を最小化できます。
+
+### 適切なインデックス設計
+
+#### 1. 結合条件のインデックス
+
+```sql
+-- 結合条件で使用されるカラムにインデックス
+CREATE INDEX idx_detail_master_id ON detail_table(master_id);
+CREATE INDEX idx_order_user_id ON orders(user_id);
+CREATE INDEX idx_order_product_id ON order_items(product_id);
+```
+
+#### 2. WHERE句のインデックス
+
+```sql
+-- 単一カラムインデックス
+CREATE INDEX idx_users_status ON users(status);
+CREATE INDEX idx_orders_created_at ON orders(created_at);
+
+-- 複合インデックス（カーディナリティの高い順）
+CREATE INDEX idx_orders_status_created_at ON orders(status, created_at);
+CREATE INDEX idx_users_email_status ON users(email, status);
+```
+
+#### 3. 複合インデックスの順序
+
+```sql
+-- ✅ 良い例：等価比較 → 範囲比較 → ORDER BY → GROUP BY
+CREATE INDEX idx_orders_status_created_at_amount 
+ON orders(status, created_at, amount);
+
+-- 使用例
+SELECT * FROM orders 
+WHERE status = 'active'           -- 等価比較（先頭）
+AND created_at > '2024-01-01'     -- 範囲比較（2番目）
+ORDER BY amount;                  -- ソート（3番目）
+
+-- ❌ 悪い例：順序が不適切
+CREATE INDEX idx_orders_created_at_status_amount 
+ON orders(created_at, status, amount);
+```
+
+#### 4. カバリングインデックス
+
+```sql
+-- SELECT句のカラムも含めたインデックス
+CREATE INDEX idx_users_email_name_status 
+ON users(email, name, status);
+
+-- 使用例（テーブルアクセス不要）
+SELECT email, name, status 
+FROM users 
+WHERE email = 'user@example.com';
+```
+
+### 結合順序とインデックス設計のテスト
+
+#### テストの実行
+
+```bash
+# 結合順序とインデックス設計の最適化テスト
+make join-optimization-test
+```
+
+#### テスト内容
+
+1. **結合順序の最適化テスト**
+   - 小さいテーブルから大きいテーブルへの結合
+   - WHERE句で絞り込めるテーブルを先に結合
+   - インデックスが効くテーブルを先に結合
+
+2. **インデックス設計の最適化テスト**
+   - 結合条件のインデックス
+   - WHERE句のインデックス
+   - 複合インデックスの順序
+   - カバリングインデックス
+
+3. **複雑な結合の最適化テスト**
+   - 3テーブル結合の最適な順序
+   - カーディナリティの影響
+
+#### 期待される結果
+
+**結合順序の最適化**:
+- 小さいテーブルを駆動テーブルにした場合：ループ回数が最小化
+- WHERE句で早期フィルタリング：処理対象行数が削減
+- インデックスを活用した結合：実行時間が短縮
+
+**インデックス設計の最適化**:
+- 結合条件のインデックス：結合処理が高速化
+- WHERE句のインデックス：フィルタリングが高速化
+- 複合インデックスの適切な順序：インデックスが効率的に使用
+- カバリングインデックス：テーブルアクセスを回避
+
+### 実践的な最適化の手順
+
+#### 1. 実行計画の分析
+
+```sql
+-- 現在のクエリの実行計画を確認
+EXPLAIN ANALYZE
+SELECT m.name, d.item_name, d.quantity
+FROM master_table m
+INNER JOIN detail_table d ON m.id = d.master_id
+WHERE m.status = 'active';
+```
+
+#### 2. ボトルネックの特定
+
+- **フルテーブルスキャン**: インデックスが不足
+- **大量のループ**: 結合順序が不適切
+- **大量の行処理**: WHERE句のフィルタリングが不十分
+
+#### 3. 最適化の実施
+
+1. **インデックスの追加**
+   ```sql
+   CREATE INDEX idx_detail_master_id ON detail_table(master_id);
+   CREATE INDEX idx_master_status ON master_table(status);
+   ```
+
+2. **結合順序の調整**
+   ```sql
+   -- 小さいテーブルから結合
+   FROM master_table m
+   INNER JOIN detail_table d ON m.id = d.master_id
+   ```
+
+3. **WHERE句の最適化**
+   ```sql
+   -- 早期フィルタリング
+   WHERE m.status = 'active'
+   AND d.quantity > 5
+   ```
+
+#### 4. 効果の検証
+
+```sql
+-- 最適化後の実行計画を確認
+EXPLAIN ANALYZE
+SELECT m.name, d.item_name, d.quantity
+FROM master_table m
+INNER JOIN detail_table d ON m.id = d.master_id
+WHERE m.status = 'active'
+AND d.quantity > 5;
+```
+
+### まとめ
+
+結合順序とインデックス設計の最適化により、以下の効果が期待できます：
+
+1. **実行時間の短縮**: 適切な結合順序でループ回数を最小化
+2. **リソース使用量の削減**: 効率的なインデックス使用でI/Oを削減
+3. **スケーラビリティの向上**: データ量増加時の影響を軽減
+4. **保守性の向上**: 明確な設計方針でコードの理解を促進
+
+定期的なパフォーマンステストと実行計画の分析により、継続的な最適化を実現してください。
