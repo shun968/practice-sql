@@ -180,6 +180,11 @@ performance-test-with-report: performance-test performance-report
 	@echo "パフォーマンステストとレポート生成が完了しました"
 	@echo "レポートファイル: reports/performance_report.html"
 
+# 結合順序とインデックス設計の最適化テスト
+join-optimization-test:
+	@echo "結合順序とインデックス設計の最適化テスト実行中..."
+	./scripts/run_join_optimization_test.sh
+
 # 特定のマイグレーション実行
 migrate-file:
 	@if [ -z "$(FILE)" ]; then \
